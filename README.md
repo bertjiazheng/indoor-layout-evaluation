@@ -1,8 +1,6 @@
 # Holistic 3D Vision Challenge on General Room Layout Estimation Track Evaluation Package
 
-This code is used to evaluate general room layout estimation on [Holistic Scene Structures for 3D Vision Workshop](https://holistic-3d.github.io/eccv20) at ECCV 2020.
-
-**This code is prereleased. Codalab server will be ready soon. Stay tuned!**
+This code is used to evaluate [General Room Layout Estimation Track](https://competitions.codalab.org/competitions/24183) on [Holistic Scene Structures for 3D Vision Workshop](https://holistic-3d.github.io/eccv20) at ECCV 2020.
 
 ## Installation
 
