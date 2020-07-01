@@ -73,13 +73,15 @@ def eval_junctions(distances, thresholds=5):
             continue
 
         distances_temp = distances_temp[np.any(np.isfinite(distances_temp), axis=1), :]
-        
+
         # solve the bipartite graph matching problem
-        row_ind, col_ind = linear_sum_assignment(distances_temp)
+        graph = scipy.sparse.csr_matrix((distances_temp != np.inf))
+        matching = scipy.sparse.csgraph.maximum_bipartite_matching(graph)
+        tp = (matching != -1).sum()
 
         # compute precision and recall
-        precision = len(row_ind) / num_preds
-        recall = len(col_ind) / num_gts
+        precision = tp / num_preds
+        recall = tp / num_gts
 
         # compute F measure
         Fs.append(2 * precision * recall / (precision + recall))
@@ -135,11 +137,13 @@ def eval_wireframe(distances, thresholds=5):
             continue
 
         # solve the bipartite graph matching problem
-        row_ind, col_ind = linear_sum_assignment(distances_temp)
+        graph = scipy.sparse.csr_matrix((distances_temp != np.inf))
+        matching = scipy.sparse.csgraph.maximum_bipartite_matching(graph)
+        tp = (matching != -1).sum()
 
         # compute precision and recall
-        precision = len(row_ind) / num_preds / 3
-        recall = len(col_ind) / num_gts / 3
+        precision = tp / num_preds / 3
+        recall = tp / num_gts / 3
 
         # compute F measure
         Fs.append(2 * precision * recall / (precision + recall))
