@@ -6,6 +6,9 @@ import scipy
 
 from utils import corner_to_boundary
 
+HEIGHT, WIDTH = 512, 1024
+MAX_DISTANCE = np.sqrt(HEIGHT**2 + WIDTH**2)
+
 
 def compute_pairwise_distances(annotations, predictions):
     """
@@ -35,6 +38,16 @@ def compute_pairwise_distances(annotations, predictions):
     return distances
 
 
+def linear_sum_assignment_with_inf(cost_matrix):
+    """
+    Deal with linear_sum_assignment with inf according to
+    https://github.com/scipy/scipy/issues/6900#issuecomment-451735634
+    """
+    cost_matrix = np.copy(cost_matrix)
+    cost_matrix[np.isinf(cost_matrix)] = MAX_DISTANCE
+    return linear_sum_assignment(cost_matrix)
+
+
 def eval_junctions(distances, thresholds=5):
     """
     Calculates precision/recall for junctions between annotations and predictions.
@@ -46,8 +59,8 @@ def eval_junctions(distances, thresholds=5):
     Returns:
         F               (float) : junction F-measure
     """
-    thresholds = thresholds if isinstance(
-        thresholds, tuple) or isinstance(thresholds, list) else thresholds
+    thresholds = thresholds if isinstance(thresholds, tuple) or isinstance(
+        thresholds, list) else list([thresholds])
 
     num_gts, num_preds = distances.shape
 
@@ -73,13 +86,14 @@ def eval_junctions(distances, thresholds=5):
             continue
 
         distances_temp = distances_temp[np.any(np.isfinite(distances_temp), axis=1), :]
-        
+
         # solve the bipartite graph matching problem
-        row_ind, col_ind = linear_sum_assignment(distances_temp)
+        row_ind, col_ind = linear_sum_assignment_with_inf(distances_temp)
+        true_positive = np.sum(np.isfinite(distances_temp[row_ind, col_ind]))
 
         # compute precision and recall
-        precision = len(row_ind) / num_preds
-        recall = len(col_ind) / num_gts
+        precision = true_positive / num_preds
+        recall = true_positive / num_gts
 
         # compute F measure
         Fs.append(2 * precision * recall / (precision + recall))
@@ -98,8 +112,8 @@ def eval_wireframe(distances, thresholds=5):
     Returns:
         F               (float): wireframe F-measure
     """
-    thresholds = thresholds if isinstance(
-        thresholds, tuple) or isinstance(thresholds, list) else thresholds
+    thresholds = thresholds if isinstance(thresholds, tuple) or isinstance(
+        thresholds, list) else list([thresholds])
 
     num_gts, num_preds = distances.shape
     # note that the definition of the number is slightly different from eval_junctions,
@@ -135,11 +149,12 @@ def eval_wireframe(distances, thresholds=5):
             continue
 
         # solve the bipartite graph matching problem
-        row_ind, col_ind = linear_sum_assignment(distances_temp)
+        row_ind, col_ind = linear_sum_assignment_with_inf(distances_temp)
+        true_positive = np.sum(np.isfinite(distances_temp[row_ind, col_ind]))
 
         # compute precision and recall
-        precision = len(row_ind) / num_preds / 3
-        recall = len(col_ind) / num_gts / 3
+        precision = true_positive / num_preds / 3
+        recall = true_positive / num_gts / 3
 
         # compute F measure
         Fs.append(2 * precision * recall / (precision + recall))
@@ -205,11 +220,11 @@ def eval_plane(annotations, predictions, threshold=0.5):
     plane_ious = inters / np.maximum(union, 1e-4)
 
     # matching
-    plane_matched = np.sum((plane_ious > threshold).astype(np.float32))
+    true_positive = np.sum((plane_ious > threshold).astype(np.float32))
 
     # compute precision and recall
-    precision = plane_matched / num_preds
-    recall = plane_matched / num_gts
+    precision = true_positive / num_preds
+    recall = true_positive / num_gts
 
     # compute F measure
     F = 2 * precision * recall / np.maximum((precision + recall), 1e-6)

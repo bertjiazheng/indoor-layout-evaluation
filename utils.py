@@ -1,4 +1,6 @@
-# Copied from https://github.com/sunset1995/HorizonNet
+"""
+Copy from https://github.com/sunset1995/HorizonNet
+"""
 import numpy as np
 
 
