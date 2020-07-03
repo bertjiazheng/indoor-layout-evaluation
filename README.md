@@ -24,16 +24,3 @@ python evaluate.py results-folder gt-folder
 In case you would like to know which is the evaluation script that is running in the CodaLab servers, check the [evaluate_codalab.py](evaluate_codalab.py) script.
 
 This package runs in the following docker image: [bertjiazheng/codalab:anaconda3](https://cloud.docker.com/u/bertjiazheng/repository/docker/bertjiazheng/codalab).
-
-## Citation
-
-Please cite `Structured3D` in your publications if it helps your research:
-```bibtex
-@article{Structured3D,
-  title   = {Structured3D: A Large Photo-realistic Dataset for Structured 3D Modeling},
-  author  = {Jia Zheng and Junfei Zhang and Jing Li and Rui Tang and Shenghua Gao and Zihan Zhou},
-  journal = {CoRR},
-  volume  = {abs/1908.00222},
-  year    = {2019}
-}
-```
